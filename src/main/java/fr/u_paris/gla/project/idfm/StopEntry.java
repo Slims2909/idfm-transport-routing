@@ -80,5 +80,22 @@ public class StopEntry implements Comparable<StopEntry> {
     public double getLongitude() {
         return this.longitude;
     }
+
+    public boolean isEqual(StopEntry o) {
+        if (o == null) {
+            return false;
+        }      
+        if (!this.lname.contains(o.lname)) {
+            return false;
+        }
+        if (this.latitude != o.latitude) {
+            return false;
+        }
+        if (this.longitude != o.longitude) {
+            return false;
+        }
+        return true;
+    }
+    
     
 }
