@@ -68,4 +68,17 @@ public class StopEntry implements Comparable<StopEntry> {
                 && Double.doubleToLongBits(longitude) == Double
                         .doubleToLongBits(other.longitude);
     }
+
+    public String getName() {
+        return this.lname;
+    }
+    
+    public double getLatitude() {
+        return this.latitude;
+    }
+    
+    public double getLongitude() {
+        return this.longitude;
+    }
+    
 }
