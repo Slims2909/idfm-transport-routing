@@ -97,5 +97,12 @@ public class StopEntry implements Comparable<StopEntry> {
         return true;
     }
     
+    public boolean isEqual_by_name(StopEntry o) {
+        if (o == null) {
+            return false;
+        }
+        return this.lname.contains(o.lname);
+    }
+    
     
 }
