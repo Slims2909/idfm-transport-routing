@@ -4,6 +4,7 @@
 package fr.u_paris.gla.project.idfm;
 
 import java.text.MessageFormat;
+import java.util.List;
 import java.util.Objects;
 
 /** A transport stop data.
@@ -104,5 +105,5 @@ public class StopEntry implements Comparable<StopEntry> {
         return this.lname.contains(o.lname);
     }
     
-    
+ 
 }
