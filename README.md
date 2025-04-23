@@ -25,3 +25,9 @@ L'option de lancement `--info` causera l'affichage dans la console d'information
 
 L'option de lancement `--gui` causera l'ouverture d'une fenêtre affichant le logo de l'Université de Paris.
 
+Pour lancer :
+```
+mvn compile
+mvn exec:java -Dexec.args="--test-reseau"
+```
+

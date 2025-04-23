@@ -7,6 +7,7 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintStream;
+import java.util.List;
 import java.util.Properties;
 
 import javax.imageio.ImageIO;
@@ -14,6 +15,9 @@ import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.WindowConstants;
+
+import fr.u_paris.gla.project.idfm.StopEntry;
+import fr.u_paris.gla.project.idfm.TraceEntry;
 
 /** Simple application model.
  *
@@ -59,6 +63,12 @@ public class App {
                 if ("--gui".equals(string)) { //$NON-NLS-1$
                     showLogo();
                 }
+
+                if ("--test-reseau".equals(string)) {
+                    testReseau();
+                    return;
+                }
+                
             }
         }
     }
@@ -111,4 +121,39 @@ public class App {
         frame.pack();
         frame.setVisible(true);
     }
+
+    
+
+    public static void testReseau() {
+    // Création de quelques arrêts
+    StopEntry a = new StopEntry("Nation", 2.395, 48.848);
+    StopEntry b = new StopEntry("Reuilly-Diderot", 2.390, 48.846);
+    StopEntry c = new StopEntry("Gare de Lyon", 2.373, 48.844);
+
+    // Création de la ligne 1
+    TraceEntry ligne1 = new TraceEntry("1");
+    ligne1.addPath(List.of(a, b, c));
+
+    // Création d'une autre ligne
+    StopEntry d = new StopEntry("Place d'Italie", 2.356, 48.831);
+    StopEntry e = new StopEntry("Tolbiac", 2.355, 48.829);
+    TraceEntry ligne7 = new TraceEntry("7");
+    ligne7.addPath(List.of(d, e));
+
+    // Création du réseau
+    Reseau reseau = new Reseau(List.of(ligne1, ligne7));
+
+    // Affichage
+    System.out.println("Réseau contient " + reseau.getNombreDeLignes() + " ligne(s).");
+
+    for (TraceEntry ligne : reseau.getToutesLesLignes()) {
+        System.out.println("Ligne : " + ligne.getName());
+        for (List<StopEntry> chemin : ligne.getPaths()) {
+            for (StopEntry stop : chemin) {
+                System.out.println(" - " + stop.getName());
+            }
+        }
+    }
+}
+
 }

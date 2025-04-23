@@ -45,6 +45,10 @@ public final class TraceEntry {
         return Collections.unmodifiableList(paths.get(index));
     }
 
+    public String getName() {
+        return this.lname;
+    }
+
     @Override
     public String toString() {
         return "TraceEntry [ligne=" + lname + ", chemins=" + paths.size() + "]";
