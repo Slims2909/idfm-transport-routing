@@ -29,6 +29,14 @@ public final class TraceEntry {
         return Collections.unmodifiableList(paths);
     }
 
+    /**
+     * Récupère le nombre total de chemins définis pour cette ligne.
+     * @return nombre de chemins
+     */
+    public int getNumberOfPaths() {
+        return paths.size();
+    }
+
     public void addPath(List<StopEntry> path) {
         paths.add(new ArrayList<>(path));
     }

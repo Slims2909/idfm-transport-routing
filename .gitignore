@@ -5,3 +5,6 @@ target/
 .settings/
 .project
 .classpath
+
+# Fichiers de données générés
+/src/data/*.csv

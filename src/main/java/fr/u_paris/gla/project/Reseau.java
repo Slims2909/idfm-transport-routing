@@ -8,8 +8,9 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Arrays;
 
-import fr.u_paris.gla.project.idfm.StopEntry;
+//import fr.u_paris.gla.project.idfm.StopEntry;
 import fr.u_paris.gla.project.idfm.TraceEntry;
 
 public class Reseau {
@@ -100,7 +101,7 @@ public class Reseau {
             String ligne = liaison.getNomLigne();
             tracesMap.putIfAbsent(ligne, new TraceEntry(ligne));
             // On ajoute le trajet (station A → B) comme un path de 2 arrêts
-            tracesMap.get(ligne).addPath(List.of(liaison.getStationDepart(), liaison.getStationArrivee()));
+            tracesMap.get(ligne).addPath(Arrays.asList(liaison.getStationDepart(), liaison.getStationArrivee()));
         }
     
         return new ArrayList<>(tracesMap.values());

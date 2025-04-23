@@ -29,5 +29,8 @@ Pour lancer :
 ```
 mvn compile
 mvn exec:java -Dexec.args="--test-reseau"
+mvn exec:java -Dexec.args="--generate-csv"
+mvn exec:java -Dexec.args="--test-liaisons"
+
 ```
 

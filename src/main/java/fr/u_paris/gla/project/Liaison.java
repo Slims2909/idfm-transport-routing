@@ -111,5 +111,4 @@ public class Liaison {
         return Objects.hash(nomLigne, idLiaison);
     }
 
-    
 }
