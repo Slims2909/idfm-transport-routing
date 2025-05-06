@@ -1,3 +1,0 @@
-#Sat May 03 22:42:01 CEST 2025
-maison=gg
-travail=

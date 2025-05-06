@@ -1,39 +1,36 @@
----
+# Projet de GLA
+Version 2024
 
-## Interface Utilisateur – JavaFX
+## Description
+Ceci est l'archetype de projet de Génie Logiciel Avancé (GLA).
 
-Cette branche contient l'interface graphique développée en JavaFX pour le projet de Génie Logiciel Avancé.
+Il s'agit d'un projet Java. Ce dépôt définit un système de build et une application simple. Il est nécéssaire de consulter le fichier [CONTRIBUTING.md](CONTRIBUTING.md) pour utiliser ce dépôt.
 
-### 📁 Structure
+## Lancement du programme
+Ce projet utilise [maven](https://maven.apache.org/) de Apache pour la gestion de construction.
 
-- `src/main/java` : Code source Java
-- `src/main/resources` : Fichiers de données (plan, adresses) et icônes
-- `src/test/java` : Tests unitaires (ex: `AppTest.java`)
-- `pom.xml` : Configuration Maven
-
-### 🚀 Lancer l'application
-
-Assurez-vous d’avoir Java 11+ et Maven installés.
-
-```bash
-mvn clean install
-mvn exec:java -Dexec.mainClass="com.nissrine.itineraire.MainFX"
+Afin de compiler et lancer les tests, éxecutez simplement
+```
+mvn verify
 ```
 
-### 🧪 Exécuter les tests
-Pour lancer les tests unitaires Maven (par exemple AppTest.java) :
+Dans sa version initiale, le programme fournit est un simple code qui se lance en terminal ou en application graphique.
 
-```bash
-mvn test
+Une fois le programme compilé, vous trouverez un jar executable dans le dossier target. Au nom de jar près (version changeante), vous pourrez l'exécuter avec:
+```
+java -jar project-2024.1.0.0-SNAPSHOT.jar --info
 ```
 
-### ✅ Prérequis
-Java JDK 11 ou supérieur
-Maven 3.6+
-OpenJFX (géré automatiquement via pom.xml)
+L'option de lancement `--info` causera l'affichage dans la console d'informations de l'application.
 
-### 📸 Aperçu
-L'interface permet de visualiser un itinéraire, lancer une simulation, et afficher un plan interactif avec icônes.
+L'option de lancement `--gui` causera l'ouverture d'une fenêtre affichant le logo de l'Université de Paris.
 
-Développé par Nissrine ELABJANI
+Pour lancer :
+```
+mvn compile
+mvn exec:java -Dexec.args="--test-reseau"
+mvn exec:java -Dexec.args="--generate-csv"
+mvn exec:java -Dexec.args="--test-liaisons"
+
+```
 
