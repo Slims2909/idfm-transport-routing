@@ -1,0 +1,110 @@
+package model {
+  class Station {
+    +nom: String
+    +coordonnees: CoordonneesGPS
+    +id: String
+  }
+
+  class Ligne {
+    +nom: String
+    +segments: Segment[]
+    +direction: String
+    +id: String
+  }
+
+  class Segment {
+    +duree: int
+    +distance: double
+  }
+
+  class Horaire {
+    +numeroLigne: int
+    +heure: String
+    +station: Station
+  }
+
+  class Trajet {
+    +segments: Segment[]
+    +tempsTotal: int
+  }
+
+  class Itineraire {
+    +trajet: Trajet
+    +horaires: Horaire[]
+    +optionsAPied: bool
+  }
+}
+
+package parser {
+  class StationParser {
+    +parseStops(): List<Station>
+  }
+
+  class LigneParser {
+    +parseTraces(): List<Ligne>
+  }
+
+  class HoraireParser {
+    +parseHoraires(): Map<Station, List<Horaire>>
+  }
+}
+
+package graph {
+  class GrapheTransport {
+    +stations: Station[]
+    +segments: Segment[]
+  }
+
+  class Noeud
+  class Arc
+}
+
+package algo {
+  class RoutePlanner {
+    +calculerTrajet(): Trajet
+  }
+
+  class DijkstraAlgorithm
+}
+
+package planner {
+  class ItinerairePlanner {
+    +calculer(): Itineraire
+  }
+
+  class GeoHelper
+  class MarchePlanner
+}
+
+package service {
+  class NetworkService
+  class RechercheService
+  class HoraireService
+}
+
+package ui {
+  class App
+  class CommandLineUI
+  class AfficheurTrajet
+}
+
+' Relations
+Station -- Segment : départ/arrivée
+Segment --> Ligne
+Segment --> Station
+Trajet --> Segment
+Itineraire --> Trajet
+Itineraire --> Horaire
+GrapheTransport --> Station
+GrapheTransport --> Segment
+RoutePlanner --> GrapheTransport
+ItinerairePlanner --> RoutePlanner
+ItinerairePlanner --> HoraireService
+ItinerairePlanner --> MarchePlanner
+RechercheService --> ItinerairePlanner
+App --> CommandLineUI
+CommandLineUI --> RechercheService
+CommandLineUI --> AfficheurTrajet
+NetworkService --> StationParser
+NetworkService --> LigneParser
+NetworkService --> HoraireParser
