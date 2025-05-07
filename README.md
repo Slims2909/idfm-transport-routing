@@ -2,11 +2,12 @@
 > 
 ~~~~
 
-_Description_
+**Description**
+
 
 Ce projet implémente l'algorithme de Dijkstra pour trouver le plus court chemin entre deux stations dans un réseau de transport. Le critère d'optimisation peut être la distance ou le temps.
 
-_Classes principales_
+_**_Classes principales_**___
 
 Station : Représente une station avec un id, name, latitude, et longitude.
 
