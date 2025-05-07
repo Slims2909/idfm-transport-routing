@@ -2,12 +2,12 @@
 > 
 ~~~~
 
-**Description**
+Description
 
 
 Ce projet implémente l'algorithme de Dijkstra pour trouver le plus court chemin entre deux stations dans un réseau de transport. Le critère d'optimisation peut être la distance ou le temps.
 
-_**_Classes principales_**___
+Classes principales
 
 Station : Représente une station avec un id, name, latitude, et longitude.
 
@@ -19,7 +19,7 @@ Dijkstra : Implémente l'algorithme de Dijkstra pour calculer le plus court chem
 
 CSVParser et CSVStreamProvider : Pour charger les données du réseau à partir de fichiers CSV.
 
-_Fonctionnalités_
+Fonctionnalités
 Calcul du plus court chemin entre deux stations.
 
 Optimisation en fonction du temps ou de la distance.
