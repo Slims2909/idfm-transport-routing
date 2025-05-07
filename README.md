@@ -5,7 +5,7 @@ Ce projet implémente l'**algorithme de Dijkstra** pour trouver le plus court ch
 
 ---
 
-## 🧳 Classes principales
+##  Classes principales
 
 ### `Station`
 - Représente une station avec un `id`, `name`, `latitude`, et `longitude`.
