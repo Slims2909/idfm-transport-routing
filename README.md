@@ -1,4 +1,5 @@
 Implémentation de Dijkstra pour le Réseau de Transport
+> 
 
 
 Description
@@ -26,10 +27,10 @@ Optimisation en fonction du temps ou de la distance.
 Affichage des statistiques du graphe (stations isolées, densité, etc.).
 
 Exemple d'utilisation
-
-GrapheTransport graphe = new GrapheTransport();
+`GrapheTransport graphe = new GrapheTransport();
 graphe.loadFromCSVProvider(provider);
 
 Station depart = new Station("S1", "Station 1", 48.8566, 2.3522);
 Station arrivee = new Station("S2", "Station 2", 48.8600, 2.3500);
-Map<Station, Double> distances = Dijkstra.calculerChemin(graphe, depart, arrivee, true);
+Map<Station, Double> distances = Dijkstra.calculerChemin(graphe, depart, arrivee, true);`
+
