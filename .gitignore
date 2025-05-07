@@ -7,4 +7,4 @@ target/
 .classpath
 
 # Fichiers de données générés
-/src/data/*.csv
+/src/data/*.csv.DS_Store
