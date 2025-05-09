@@ -1,0 +1,107 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[french]{babel}
+\usepackage{graphicx}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{hyperref}
+
+\definecolor{javared}{rgb}{0.6,0,0}
+\definecolor{javagreen}{rgb}{0.25,0.5,0.35}
+\definecolor{javapurple}{rgb}{0.5,0,0.35}
+\definecolor{javacomment}{rgb}{0.5,0.5,0.5}
+
+\lstset{
+    language=Java,
+    basicstyle=\ttfamily\small,
+    keywordstyle=\color{javapurple}\bfseries,
+    stringstyle=\color{javared},
+    commentstyle=\color{javacomment},
+    numbers=left,
+    numberstyle=\tiny\color{javacomment},
+    frame=single,
+    breaklines=true
+}
+
+\title{Rapport : Implémentation d'un Extracteur de Données de Transport}
+\author{Projet Génie Logiciel}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\section{Introduction}
+Ce rapport décrit l'implémentation d'un outil d'extraction de données pour le réseau de transport IDF Mobilités. L'objectif était de créer un système capable de télécharger, traiter et sauvegarder les données de transport en format CSV.
+
+\section{Architecture du Système}
+L'extracteur de données a été implémenté en Java avec les composants suivants :
+\begin{itemize}
+    \item \texttt{IDFMNetworkExtractor} : Classe principale gérant le téléchargement et le traitement
+    \item \texttt{CSVTools} : Utilitaires pour la manipulation des fichiers CSV
+    \item Gestion des dépendances avec Maven
+\end{itemize}
+
+\section{Implémentation}
+\subsection{Configuration Maven}
+Le projet utilise Maven pour la gestion des dépendances. Voici les principales dépendances :
+\begin{lstlisting}
+<dependency>
+    <groupId>com.opencsv</groupId>
+    <artifactId>opencsv</artifactId>
+    <version>5.4</version>
+</dependency>
+<dependency>
+    <groupId>org.json</groupId>
+    <artifactId>json</artifactId>
+    <version>20231013</version>
+</dependency>
+\end{lstlisting}
+
+\subsection{Téléchargement des Données}
+L'extracteur télécharge deux fichiers principaux :
+\begin{itemize}
+    \item \texttt{traces.csv} : Contient les tracés des lignes de transport
+    \item \texttt{stops.csv} : Contient les informations sur les arrêts
+\end{itemize}
+
+\subsection{Processus d'Extraction}
+Le processus se déroule en plusieurs étapes :
+\begin{enumerate}
+    \item Création du répertoire de sortie
+    \item Téléchargement des fichiers CSV depuis l'API IDF Mobilités
+    \item Lecture et traitement des tracés
+    \item Lecture et traitement des arrêts
+    \item Nettoyage des données
+    \item Génération du réseau final
+\end{enumerate}
+
+\section{Capture d'Écran du Processus}
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.8\textwidth]{screenshot.png}
+    \caption{Exécution de l'extracteur de données}
+    \label{fig:execution}
+\end{figure}
+
+\section{Gestion des Erreurs}
+Le système inclut une gestion robuste des erreurs :
+\begin{itemize}
+    \item Vérification des arguments en ligne de commande
+    \item Validation des fichiers téléchargés
+    \item Messages d'erreur détaillés avec stack traces
+    \item Journalisation des événements importants
+\end{itemize}
+
+\section{Résultats}
+Les fichiers générés sont :
+\begin{itemize}
+    \item \texttt{traces.csv} : ∼7.27 MB
+    \item \texttt{stops.csv} : ∼12.15 MB
+    \item \texttt{network.csv} : Réseau final généré
+\end{itemize}
+
+\section{Conclusion}
+L'extracteur de données implémenté permet de récupérer efficacement les données de transport d'IDF Mobilités. Le système est robuste, avec une bonne gestion des erreurs et une documentation claire des processus.
+
+\end{document}

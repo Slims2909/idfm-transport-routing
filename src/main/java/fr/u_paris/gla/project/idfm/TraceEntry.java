@@ -26,7 +26,7 @@ public final class TraceEntry {
     // FIXME list of lists are bad practice in direct access...
     /** @return the list of paths */
     public List<List<StopEntry>> getPaths() {
-        return Collections.unmodifiableList(paths);
+        return paths;
     }
 
     /**
@@ -37,8 +37,11 @@ public final class TraceEntry {
         return paths.size();
     }
 
+    /** Add a path to this trace
+     * 
+     * @param path the path to add */
     public void addPath(List<StopEntry> path) {
-        paths.add(new ArrayList<>(path));
+        paths.add(path);
     }
 
       /**

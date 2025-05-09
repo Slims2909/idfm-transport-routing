@@ -53,7 +53,7 @@ public class TransportDataLoader {
             Ligne ligne = lignes.get(ligneId);
             
             if (fromStop != null && toStop != null && ligne != null) {
-                Segment segment = new Segment(fromStop, toStop, duration, distance);
+                Segment segment = new Segment(fromStop, toStop, (int)duration, distance);
                 ligne.addSegment(segment);
                 return segment;
             }

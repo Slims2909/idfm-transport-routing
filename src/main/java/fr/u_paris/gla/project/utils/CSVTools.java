@@ -32,23 +32,28 @@ public final class CSVTools {
         // Tool class
     }
 
-    public static void readCSVFromURL(String url, Consumer<String[]> contentLineConsumer)
+    public static void readCSV(Reader reader, Consumer<String[]> contentLineConsumer)
             throws IOException {
         ICSVParser parser = new CSVParserBuilder().withSeparator(';').build();
+        CSVReaderBuilder csvBuilder = new CSVReaderBuilder(reader)
+                .withCSVParser(parser);
+        try (CSVReader csv = csvBuilder.build()) {
+            String[] line = csv.readNextSilently(); // Eliminate header
+            while (csv.peek() != null) {
+                line = csv.readNext();
+                contentLineConsumer.accept(line);
+            }
+        } catch (CsvValidationException e) {
+            throw new IOException("Invalid csv file", e);
+        }
+    }
+
+    public static void readCSVFromURL(String url, Consumer<String[]> contentLineConsumer)
+            throws IOException {
         try (InputStream is = new URL(url).openStream();
                 Reader reader = new BufferedReader(
                         new InputStreamReader(is, StandardCharsets.UTF_8))) {
-            CSVReaderBuilder csvBuilder = new CSVReaderBuilder(reader)
-                    .withCSVParser(parser);
-            try (CSVReader csv = csvBuilder.build()) {
-                String[] line = csv.readNextSilently(); // Eliminate header
-                while (csv.peek() != null) {
-                    line = csv.readNext();
-                    contentLineConsumer.accept(line);
-                }
-            }
-        } catch (CsvValidationException e) {
-            throw new IOException("Invalid csv file", e); //$NON-NLS-1$
+            readCSV(reader, contentLineConsumer);
         }
     }
 
