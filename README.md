@@ -1,36 +1,43 @@
-# Projet de GLA
-Version 2024
+# Implémentation de Dijkstra pour le Réseau de Transport
 
 ## Description
-Ceci est l'archetype de projet de Génie Logiciel Avancé (GLA).
+Ce projet implémente l'**algorithme de Dijkstra** pour trouver le plus court chemin entre deux stations dans un réseau de transport. Le critère d'optimisation peut être la **distance** ou le **temps**.
 
-Il s'agit d'un projet Java. Ce dépôt définit un système de build et une application simple. Il est nécéssaire de consulter le fichier [CONTRIBUTING.md](CONTRIBUTING.md) pour utiliser ce dépôt.
+---
 
-## Lancement du programme
-Ce projet utilise [maven](https://maven.apache.org/) de Apache pour la gestion de construction.
+##  Classes principales
 
-Afin de compiler et lancer les tests, éxecutez simplement
-```
-mvn verify
-```
+### `Station`
+- Représente une station avec un `id`, `name`, `latitude`, et `longitude`.
 
-Dans sa version initiale, le programme fournit est un simple code qui se lance en terminal ou en application graphique.
+### `Segment`
+- Représente un trajet entre deux stations avec `departure`, `arrival`, `duration`, et `distance`.
 
-Une fois le programme compilé, vous trouverez un jar executable dans le dossier target. Au nom de jar près (version changeante), vous pourrez l'exécuter avec:
-```
-java -jar project-2024.1.0.0-SNAPSHOT.jar --info
-```
+### `GrapheTransport`
+- Modélise le réseau de transport avec des stations et des segments.
 
-L'option de lancement `--info` causera l'affichage dans la console d'informations de l'application.
+### `Dijkstra`
+- Implémente l'algorithme de Dijkstra pour calculer le plus court chemin entre deux stations.
 
-L'option de lancement `--gui` causera l'ouverture d'une fenêtre affichant le logo de l'Université de Paris.
+### `CSVParser` et `CSVStreamProvider`
+- Pour charger les données du réseau à partir de fichiers CSV.
 
-Pour lancer :
-```
-mvn compile
-mvn exec:java -Dexec.args="--test-reseau"
-mvn exec:java -Dexec.args="--generate-csv"
-mvn exec:java -Dexec.args="--test-liaisons"
+---
 
-```
+## ⚡ Fonctionnalités
 
+- **Calcul du plus court chemin** entre deux stations.
+- **Optimisation** en fonction du temps ou de la distance.
+- **Affichage des statistiques** du graphe (stations isolées, densité, etc.).
+
+---
+
+## 📥 Exemple d'utilisation
+
+```java
+GrapheTransport graphe = new GrapheTransport();
+graphe.loadFromCSVProvider(provider);
+
+Station depart = new Station("S1", "Station 1", 48.8566, 2.3522);
+Station arrivee = new Station("S2", "Station 2", 48.8600, 2.3500);
+Map<Station, Double> distances = Dijkstra.calculerChemin(graphe, depart, arrivee, true);
