@@ -1,43 +1,24 @@
-/**
- * 
- */
 package fr.u_paris.gla.project.utils;
 
-/** A utility class for computations related to GPS.
- * 
- * @author Emmanuel Bigeon */
-public final class GPS {
+public class GPS {
+    private static final double EARTH_RADIUS = 6371.0; // Rayon moyen de la Terre en km
 
-    /** The (approximated) earth radius in km. */
-    private static final double EARTH_RADIUS = 6_370.0;
+    public static double distance(double lat1, double lon1, double lat2, double lon2) {
+        // Conversion des degrés en radians
+        double lat1Rad = Math.toRadians(lat1);
+        double lon1Rad = Math.toRadians(lon1);
+        double lat2Rad = Math.toRadians(lat2);
+        double lon2Rad = Math.toRadians(lon2);
 
-    /** Hidden constructor for tool class */
-    private GPS() {
-        // Tool class
-    }
+        // Formule de Haversine
+        double dLat = lat2Rad - lat1Rad;
+        double dLon = lon2Rad - lon1Rad;
+        double a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                Math.cos(lat1Rad) * Math.cos(lat2Rad) *
+                Math.sin(dLon / 2) * Math.sin(dLon / 2);
+        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 
-    /** Convert a degree angle value in a radian angle one.
-     * 
-     * @param degree the degree value
-     * @return the radian value */
-    private static final double degreeToRadian(double degree) {
-        return degree / 180 * Math.PI;
-    }
-
-    /** Compute the flying distance between two GPS positions.
-     * 
-     * @param latitude1 the latitude of the first position
-     * @param longitude1 the longitude of the first position
-     * @param latitude2 the latitude of the second position
-     * @param longitude2 the longitude of the second position
-     * @return the flying distance */
-    public static double distance(double latitude1, double longitude1, double latitude2,
-            double longitude2) {
-        double deltaLatitude = degreeToRadian(latitude2 - latitude1);
-        double deltaLongitude = degreeToRadian(longitude2 - longitude1);
-        double a = Math.pow(Math.sin(deltaLatitude / 2), 2)
-                + Math.pow(Math.sin(deltaLongitude), 2) * Math.cos(latitude1)
-                        * Math.cos(latitude2);
-        return EARTH_RADIUS * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        // Distance en kilomètres
+        return EARTH_RADIUS * c;
     }
 }

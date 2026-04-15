@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+<?import java.net.URL?>
+<?import javafx.scene.image.*?>
+
+<VBox xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml"
+      fx:controller="fr.u_paris.gla.project.idfm.RouteFinderController"
+      spacing="10" styleClass="root">
+    
+    <padding>
+        <Insets top="20" right="20" bottom="20" left="20"/>
+    </padding>
+
+    <stylesheets>
+        <URL value="@/fr/u_paris/gla/project/idfm/styles.css"/>
+    </stylesheets>
+
+    <!-- En-tête avec logos -->
+    <HBox spacing="20" alignment="CENTER_LEFT">
+        <ImageView fitHeight="50" fitWidth="50">
+            <Image url="@/fr/u_paris/gla/project/uparis_logo_rvb.png"/>
+        </ImageView>
+        <Label text="IDFM Navigator" styleClass="title"/>
+    </HBox>
+
+    <!-- Barre d'outils -->
+    <ToolBar styleClass="toolbar">
+        <HBox spacing="10">
+            <Button styleClass="tool-button" onAction="#goHome">
+                <graphic>
+                    <ImageView fitHeight="24" fitWidth="24">
+                        <Image url="@/icons/home.png"/>
+                    </ImageView>
+                </graphic>
+                <tooltip>
+                    <Tooltip text="Réinitialiser la recherche"/>
+                </tooltip>
+            </Button>
+            <Button styleClass="tool-button" onAction="#showMap">
+                <graphic>
+                    <ImageView fitHeight="24" fitWidth="24">
+                        <Image url="@/icons/map.png"/>
+                    </ImageView>
+                </graphic>
+                <tooltip>
+                    <Tooltip text="Voir le plan en plein écran"/>
+                </tooltip>
+            </Button>
+        </HBox>
+    </ToolBar>
+
+    <!-- Formulaire de recherche -->
+    <GridPane hgap="10" vgap="10">
+        <HBox spacing="10" alignment="CENTER_LEFT" GridPane.columnIndex="0" GridPane.rowIndex="0">
+            <ImageView fitHeight="24" fitWidth="24">
+                <Image url="@/icons/mark-on-map.png"/>
+            </ImageView>
+            <Label text="Station de départ :"/>
+        </HBox>
+        <ComboBox fx:id="fromStation" promptText="Choisir la station de départ"
+                  GridPane.columnIndex="1" GridPane.rowIndex="0" GridPane.hgrow="ALWAYS">
+            <tooltip>
+                <Tooltip text="Entrez ou sélectionnez la station de départ"/>
+            </tooltip>
+        </ComboBox>
+
+        <HBox spacing="10" alignment="CENTER_LEFT" GridPane.columnIndex="0" GridPane.rowIndex="1">
+            <ImageView fitHeight="24" fitWidth="24">
+                <Image url="@/icons/mark-on-map.png"/>
+            </ImageView>
+            <Label text="Station d'arrivée :"/>
+        </HBox>
+        <ComboBox fx:id="toStation" promptText="Choisir la station d'arrivée"
+                  GridPane.columnIndex="1" GridPane.rowIndex="1" GridPane.hgrow="ALWAYS">
+            <tooltip>
+                <Tooltip text="Entrez ou sélectionnez la station d'arrivée"/>
+            </tooltip>
+        </ComboBox>
+
+        <HBox spacing="10" alignment="CENTER_LEFT" GridPane.columnIndex="0" GridPane.rowIndex="2">
+            <ImageView fitHeight="24" fitWidth="24">
+                <Image url="@/icons/timer.png"/>
+            </ImageView>
+            <Label text="Date et heure :"/>
+        </HBox>
+        <HBox spacing="10" styleClass="date-time-box" GridPane.columnIndex="1" GridPane.rowIndex="2">
+            <DatePicker fx:id="datePicker" promptText="Date">
+                <tooltip>
+                    <Tooltip text="Sélectionnez la date du trajet"/>
+                </tooltip>
+            </DatePicker>
+            <HBox spacing="5" styleClass="hour-minute-box">
+                <ComboBox fx:id="hourPicker" prefWidth="70">
+                    <tooltip>
+                        <Tooltip text="Sélectionnez l'heure"/>
+                    </tooltip>
+                </ComboBox>
+                <Label text="h"/>
+                <ComboBox fx:id="minutePicker" prefWidth="70">
+                    <tooltip>
+                        <Tooltip text="Sélectionnez les minutes"/>
+                    </tooltip>
+                </ComboBox>
+                <Label text="min"/>
+            </HBox>
+        </HBox>
+
+        <Button text="Rechercher l'itinéraire" onAction="#findPath" styleClass="search-button"
+                GridPane.columnIndex="1" GridPane.rowIndex="3">
+            <graphic>
+                <ImageView fitHeight="24" fitWidth="24">
+                    <Image url="@/icons/route.png"/>
+                </ImageView>
+            </graphic>
+            <tooltip>
+                <Tooltip text="Lancer la recherche d'itinéraire"/>
+            </tooltip>
+        </Button>
+    </GridPane>
+
+    <!-- Contenu principal -->
+    <SplitPane dividerPositions="0.6" VBox.vgrow="ALWAYS">
+        <!-- Panneau de gauche : Plan -->
+        <StackPane>
+            <ImageView fx:id="planView" preserveRatio="true" fitWidth="800">
+                <Image url="@/plan.png"/>
+            </ImageView>
+        </StackPane>
+        
+        <!-- Panneau de droite : Itinéraire -->
+        <VBox spacing="10" minWidth="300">
+            <padding>
+                <Insets top="10" right="10" bottom="10" left="10"/>
+            </padding>
+
+            <!-- En-tête fixe -->
+            <VBox spacing="10" VBox.vgrow="NEVER">
+                <Label text="Itinéraire détaillé" styleClass="subtitle"/>
+                
+                <!-- Résumé du trajet -->
+                <HBox spacing="10" styleClass="journey-summary">
+                    <padding>
+                        <Insets top="10" right="10" bottom="10" left="10"/>
+                    </padding>
+                    <VBox spacing="5" HBox.hgrow="ALWAYS" minWidth="150">
+                        <Label fx:id="durationLabel" styleClass="duration" wrapText="true"/>
+                        <Label fx:id="stopsLabel" styleClass="stops" wrapText="true"/>
+                    </VBox>
+                    <VBox spacing="5" alignment="CENTER_RIGHT" minWidth="120">
+                        <Label fx:id="departureTimeLabel" styleClass="time"/>
+                        <Label fx:id="arrivalTimeLabel" styleClass="time"/>
+                    </VBox>
+                </HBox>
+            </VBox>
+            
+            <!-- Zone de défilement -->
+            <ScrollPane VBox.vgrow="ALWAYS" 
+                      styleClass="steps-scroll-pane" 
+                      fitToWidth="true"
+                      hbarPolicy="NEVER"
+                      vbarPolicy="ALWAYS"
+                      maxHeight="Infinity">
+                <VBox fx:id="stepsContainer" 
+                      spacing="10" 
+                      styleClass="steps-container">
+                    <padding>
+                        <Insets top="5" right="5" bottom="5" left="5"/>
+                    </padding>
+                </VBox>
+            </ScrollPane>
+        </VBox>
+    </SplitPane>
+</VBox>

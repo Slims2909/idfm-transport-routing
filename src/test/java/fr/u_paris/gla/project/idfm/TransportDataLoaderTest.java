@@ -9,6 +9,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Map;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -18,13 +19,15 @@ public class TransportDataLoaderTest {
     Path tempDir;
     
     private TransportDataLoader loader;
+    private GrapheTransport graphe;
     private File stopsFile;
     private File routesFile;
     private File segmentsFile;
     
     @BeforeEach
     void setUp() throws IOException {
-        loader = new TransportDataLoader();
+        graphe = new GrapheTransport();
+        loader = new TransportDataLoader(graphe);
         
         // Créer les fichiers CSV de test
         stopsFile = createStopsFile();
@@ -72,15 +75,15 @@ public class TransportDataLoaderTest {
         loader.loadLignes(routesFile.getAbsolutePath());
         loader.loadSegments(segmentsFile.getAbsolutePath());
         
-        // Vérifier les stops
-        Map<String, Stop> stops = loader.getStops();
-        assertEquals(3, stops.size());
+        // Vérifier les stations
+        Set<Station> stations = graphe.getStations();
+        assertEquals(3, stations.size());
         
-        Stop chatelet = stops.get("S1");
+        Station chatelet = graphe.getStation("S1");
         assertNotNull(chatelet);
         assertEquals("Châtelet", chatelet.getName());
-        assertEquals(48.8586, chatelet.getLatitude());
-        assertEquals(2.3488, chatelet.getLongitude());
+        assertEquals(48.8586, chatelet.getLatitude(), 0.0001);
+        assertEquals(2.3488, chatelet.getLongitude(), 0.0001);
         
         // Vérifier les lignes
         Map<String, Ligne> lignes = loader.getLignes();
@@ -95,8 +98,8 @@ public class TransportDataLoaderTest {
         assertEquals(1, ligne4.getSegments().size());
         
         Segment segment = ligne4.getSegments().get(0);
-        assertEquals(chatelet.getId(), segment.getDeparture().getId());
-        assertEquals("S2", segment.getArrival().getId());
+        assertEquals(chatelet, segment.getStation1());
+        assertEquals("S2", segment.getStation2().getId());
         assertEquals(300, segment.getDuration());
         assertEquals(2500, segment.getDistance());
         
@@ -105,12 +108,12 @@ public class TransportDataLoaderTest {
         Ligne ligne1 = lignes.get("L1");
         
         assertTrue(ligne5.getSegments().stream()
-            .anyMatch(s -> s.getDeparture().getId().equals("S2") && 
-                         s.getArrival().getId().equals("S3")));
+            .anyMatch(s -> s.getStation1().getId().equals("S2") && 
+                         s.getStation2().getId().equals("S3")));
                          
         assertTrue(ligne1.getSegments().stream()
-            .anyMatch(s -> s.getDeparture().getId().equals("S1") && 
-                         s.getArrival().getId().equals("S3")));
+            .anyMatch(s -> s.getStation1().getId().equals("S1") && 
+                         s.getStation2().getId().equals("S3")));
     }
     
     @Test

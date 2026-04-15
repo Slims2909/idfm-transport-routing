@@ -15,7 +15,8 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<maven.compiler.source>17</maven.compiler.source>
 		<maven.compiler.target>17</maven.compiler.target>
-		<junit.version>5.10.1</junit.version>
+		<junit.version>5.10.2</junit.version>
+		<javafx.version>21.0.2</javafx.version>
 	</properties>
 
 	<dependencies>
@@ -40,6 +41,13 @@
 			<version>${junit.version}</version>
 			<scope>test</scope>
 		</dependency>
+		<!-- JUnit 5 pour les tests -->
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <version>5.10.2</version>
+            <scope>test</scope>
+        </dependency>
 		<dependency>
 			<groupId>com.opencsv</groupId>
 			<artifactId>opencsv</artifactId>
@@ -50,10 +58,36 @@
 			<artifactId>json</artifactId>
 			<version>20231013</version>
 		</dependency>
+		<!-- JavaFX -->
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-controls</artifactId>
+            <version>${javafx.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-fxml</artifactId>
+            <version>${javafx.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-graphics</artifactId>
+            <version>${javafx.version}</version>
+        </dependency>
 	</dependencies>
 
 	<build>
 		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.13.0</version>
+				<configuration>
+					<excludes>
+						<exclude>**/com/nissrine/itineraire/**</exclude>
+					</excludes>
+				</configuration>
+			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-jar-plugin</artifactId>
@@ -62,7 +96,7 @@
 					<archive>
 						<manifest>
 							<addClasspath>true</addClasspath>
-							<mainClass>fr.u_paris.gla.project.App</mainClass>
+							<mainClass>fr.u_paris.gla.project.idfm.RouteFinderApp</mainClass>
 						</manifest>
 					</archive>
 				</configuration>
@@ -71,13 +105,25 @@
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-surefire-plugin</artifactId>
 				<version>3.2.5</version>
+				<configuration>
+                    <includes>
+                        <include>**/*Test.java</include>
+                    </includes>
+                </configuration>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.apache.maven.surefire</groupId>
+                        <artifactId>surefire-junit-platform</artifactId>
+                        <version>3.2.5</version>
+                    </dependency>
+                </dependencies>
 			</plugin>
 			<plugin>
         		<groupId>org.codehaus.mojo</groupId>
         		<artifactId>exec-maven-plugin</artifactId>
         		<version>3.1.0</version>
         		<configuration>
-            		<mainClass>fr.u_paris.gla.project.App</mainClass>
+            		<mainClass>fr.u_paris.gla.project.idfm.RouteFinderApp</mainClass>
         		</configuration>
    			</plugin>
 			<plugin>
@@ -90,7 +136,7 @@
 					</descriptorRefs>
 					<archive>
 						<manifest>
-							<mainClass>fr.u_paris.gla.project.idfm.IDFMNetworkExtractor</mainClass>
+							<mainClass>fr.u_paris.gla.project.idfm.RouteFinderApp</mainClass>
 						</manifest>
 					</archive>
 				</configuration>
@@ -104,11 +150,31 @@
 					</execution>
 				</executions>
 			</plugin>
+			<plugin>
+                <groupId>org.openjfx</groupId>
+                <artifactId>javafx-maven-plugin</artifactId>
+                <version>0.0.8</version>
+                <configuration>
+                    <mainClass>fr.u_paris.gla.project.idfm.RouteFinderApp</mainClass>
+                    <options>
+                        <option>--add-modules</option>
+                        <option>javafx.controls,javafx.fxml,javafx.graphics</option>
+                        <option>--add-opens</option>
+                        <option>java.base/java.lang=ALL-UNNAMED</option>
+                    </options>
+                </configuration>
+            </plugin>
 		</plugins>
 		<resources>
 			<resource>
-				<directory>src/main/resources-filtered</directory>
-				<filtering>true</filtering>
+				<directory>src/main/resources</directory>
+			</resource>
+			<resource>
+				<directory>data</directory>
+				<targetPath>data</targetPath>
+				<includes>
+					<include>*.csv</include>
+				</includes>
 			</resource>
 		</resources>
 	</build>

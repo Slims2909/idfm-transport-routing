@@ -1,10 +1,15 @@
 \documentclass[12pt,a4paper]{article}
 \usepackage[utf8]{inputenc}
-\usepackage[french]{babel}
+\usepackage[english]{babel}
 \usepackage{graphicx}
 \usepackage{listings}
 \usepackage{xcolor}
 \usepackage{hyperref}
+\usepackage{geometry}
+\usepackage{microtype}
+\usepackage{parskip}
+
+\geometry{top=2.5cm, bottom=2.5cm, left=3cm, right=3cm}
 
 \definecolor{javared}{rgb}{0.6,0,0}
 \definecolor{javagreen}{rgb}{0.25,0.5,0.35}
@@ -23,29 +28,46 @@
     breaklines=true
 }
 
-\title{Rapport : Implémentation d'un Extracteur de Données de Transport}
-\author{Projet Génie Logiciel}
+\title{\textbf{Technical Report}\\
+\large Dijkstra Routing Engine for the Paris Public Transport Network (IDFM)}
+\author{Slims \\ M1 Software Engineering --- University Project}
 \date{\today}
 
 \begin{document}
 
 \maketitle
 
-\section{Introduction}
-Ce rapport décrit l'implémentation d'un outil d'extraction de données pour le réseau de transport IDF Mobilités. L'objectif était de créer un système capable de télécharger, traiter et sauvegarder les données de transport en format CSV.
+\tableofcontents
+\newpage
 
-\section{Architecture du Système}
-L'extracteur de données a été implémenté en Java avec les composants suivants :
+% ----------------------------------------------------------------
+\section{Introduction}
+
+This report describes the design and implementation of a data extraction and shortest-path routing system for the Paris Île-de-France Mobilités (IDFM) public transport network. The objective was to build a complete pipeline capable of downloading, processing, and modeling transport data, then applying Dijkstra's algorithm to compute optimal itineraries between any two stations.
+
+The system is implemented in Java and exposed through both a command-line interface (CLI) and a JavaFX graphical interface.
+
+% ----------------------------------------------------------------
+\section{System Architecture}
+
+The project follows a five-layer modular architecture designed for extensibility and separation of concerns:
+
 \begin{itemize}
-    \item \texttt{IDFMNetworkExtractor} : Classe principale gérant le téléchargement et le traitement
-    \item \texttt{CSVTools} : Utilitaires pour la manipulation des fichiers CSV
-    \item Gestion des dépendances avec Maven
+    \item \textbf{Presentation} --- CLI (\texttt{RouteDemo}) and GUI (\texttt{RouteFinderApp}, \texttt{RouteFinderController})
+    \item \textbf{Application} --- Entry point and orchestration (\texttt{App})
+    \item \textbf{Domain} --- Network modeling (\texttt{TransportGraph}, \texttt{Ligne}, \texttt{Station}, \texttt{Segment})
+    \item \textbf{Infrastructure} --- Data ingestion and CSV I/O (\texttt{IDFMDataDownloader}, \texttt{CSVParser}, \texttt{CSVTools})
+    \item \textbf{Algorithm} --- Graph and pathfinding (\texttt{Node}, \texttt{Dijkstra})
 \end{itemize}
 
-\section{Implémentation}
-\subsection{Configuration Maven}
-Le projet utilise Maven pour la gestion des dépendances. Voici les principales dépendances :
-\begin{lstlisting}
+% ----------------------------------------------------------------
+\section{Implementation}
+
+\subsection{Maven Configuration}
+
+The project uses Maven for dependency management. Key dependencies include:
+
+\begin{lstlisting}[language=XML]
 <dependency>
     <groupId>com.opencsv</groupId>
     <artifactId>opencsv</artifactId>
@@ -58,50 +80,100 @@ Le projet utilise Maven pour la gestion des dépendances. Voici les principales 
 </dependency>
 \end{lstlisting}
 
-\subsection{Téléchargement des Données}
-L'extracteur télécharge deux fichiers principaux :
+\subsection{Data Ingestion}
+
+The extractor downloads two primary datasets from the IDFM open API:
+
 \begin{itemize}
-    \item \texttt{traces.csv} : Contient les tracés des lignes de transport
-    \item \texttt{stops.csv} : Contient les informations sur les arrêts
+    \item \texttt{traces.csv} (~7.27 MB) --- line trajectories with GPS coordinates
+    \item \texttt{stops.csv} (~12.15 MB) --- station names and positions
 \end{itemize}
 
-\subsection{Processus d'Extraction}
-Le processus se déroule en plusieurs étapes :
+Travel durations between stops are estimated using the \textbf{Haversine formula}, which computes the great-circle distance between two GPS coordinates and applies an average speed assumption to derive travel time.
+
+\subsection{Data Processing Pipeline}
+
+The extraction process follows these sequential steps:
+
 \begin{enumerate}
-    \item Création du répertoire de sortie
-    \item Téléchargement des fichiers CSV depuis l'API IDF Mobilités
-    \item Lecture et traitement des tracés
-    \item Lecture et traitement des arrêts
-    \item Nettoyage des données
-    \item Génération du réseau final
+    \item Create the output directory
+    \item Download CSV files from the IDFM API (with GZIP decompression support)
+    \item Parse and process line trajectories (\texttt{TraceEntry} objects)
+    \item Parse and match stop coordinates
+    \item Clean invalid or unresolved entries via \texttt{cleanTraces()}
+    \item Generate the structured \texttt{network.csv} via \texttt{CSVFormatter}
+    \item Generate theoretical timetables via \texttt{ScheduleGenerator}
+    \item Remove temporary files
 \end{enumerate}
 
-\section{Capture d'Écran du Processus}
-\begin{figure}[h]
-    \centering
-    \includegraphics[width=0.8\textwidth]{screenshot.png}
-    \caption{Exécution de l'extracteur de données}
-    \label{fig:execution}
-\end{figure}
+\subsection{Routing Algorithm}
 
-\section{Gestion des Erreurs}
-Le système inclut une gestion robuste des erreurs :
+The routing engine is built on \textbf{Dijkstra's algorithm} applied to a weighted undirected graph:
+
 \begin{itemize}
-    \item Vérification des arguments en ligne de commande
-    \item Validation des fichiers téléchargés
-    \item Messages d'erreur détaillés avec stack traces
-    \item Journalisation des événements importants
+    \item Each \textbf{node} represents a transit stop on a specific line (identified by \texttt{stopName\_lineId})
+    \item Each \textbf{edge} encodes a travel duration in minutes
+    \item \textbf{Transfer penalties} of 5 minutes are introduced between nodes of different lines sharing the same station name, modeling real-world interchange costs
 \end{itemize}
 
-\section{Résultats}
-Les fichiers générés sont :
+This design allows the engine to naturally balance in-vehicle time against connection time --- a classic trade-off in transport network optimization.
+
+\begin{lstlisting}
+GrapheTransport graphe = new GrapheTransport();
+graphe.loadFromCSVProvider(provider);
+
+Station depart  = new Station("S1", "Station 1", 48.8566, 2.3522);
+Station arrivee = new Station("S2", "Station 2", 48.8600, 2.3500);
+
+Map<Station, Double> distances =
+    Dijkstra.calculerChemin(graphe, depart, arrivee, true);
+\end{lstlisting}
+
+% ----------------------------------------------------------------
+\section{Error Handling and Validation}
+
+The system includes robust error handling at every stage:
+
 \begin{itemize}
-    \item \texttt{traces.csv} : ∼7.27 MB
-    \item \texttt{stops.csv} : ∼12.15 MB
-    \item \texttt{network.csv} : Réseau final généré
+    \item Command-line argument validation
+    \item Downloaded file integrity checks
+    \item Detailed error messages with stack traces
+    \item Graph validation: detection of isolated stations and invalid GPS coordinates via \texttt{GrapheTransport.validate()}
+    \item Logging of key events and progress during data generation
 \end{itemize}
 
+% ----------------------------------------------------------------
+\section{Generated Outputs}
+
+\begin{itemize}
+    \item \texttt{traces.csv} --- raw line trajectories (~7.27 MB)
+    \item \texttt{stops.csv} --- raw stop data (~12.15 MB)
+    \item \texttt{network.csv} --- structured network with durations and distances
+    \item \texttt{schedules.csv} --- theoretical timetables (departures every 30 min, 7:00--9:00 AM)
+\end{itemize}
+
+% ----------------------------------------------------------------
+\section{Build and Execution}
+
+\textbf{Compile:}
+\begin{lstlisting}[language=bash]
+mvn clean compile
+\end{lstlisting}
+
+\textbf{Run the JavaFX interface:}
+\begin{lstlisting}[language=bash]
+mvn javafx:run
+\end{lstlisting}
+
+\textbf{Download and format IDFM data:}
+\begin{lstlisting}[language=bash]
+java -cp target/project.jar \
+  fr.u_paris.gla.project.idfm.IDFMDataDownloader
+\end{lstlisting}
+
+% ----------------------------------------------------------------
 \section{Conclusion}
-L'extracteur de données implémenté permet de récupérer efficacement les données de transport d'IDF Mobilités. Le système est robuste, avec une bonne gestion des erreurs et une documentation claire des processus.
+
+This project demonstrates the design of a complete transport routing system, from raw API data ingestion to interactive shortest-path computation. The modular architecture ensures extensibility --- future improvements could include real-time delay integration, a REST API backend, and performance optimization for large-scale graph queries. The algorithmic challenges encountered here --- flow optimization in large networks, handling noisy real-world data, designing extensible systems --- are directly relevant to quantitative modeling in financial engineering contexts.
 
 \end{document}

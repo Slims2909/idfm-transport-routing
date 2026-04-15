@@ -1,14 +1,19 @@
 package fr.u_paris.gla.project.idfm;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class Ligne {
     private final String id;
     private final String name;
     private final String type;  // métro, RER, bus, etc.
-    private final List<Segment> segments;
     private final String color;  // code couleur de la ligne
+    private final List<Segment> segments;
+    
+    public Ligne(String id, String name) {
+        this(id, name, "", "");
+    }
     
     public Ligne(String id, String name, String type, String color) {
         this.id = id;
@@ -18,16 +23,29 @@ public class Ligne {
         this.segments = new ArrayList<>();
     }
     
+    public String getId() {
+        return id;
+    }
+    
+    public String getName() {
+        return name;
+    }
+    
+    public String getType() {
+        return type;
+    }
+    
+    public String getColor() {
+        return color;
+    }
+    
     public void addSegment(Segment segment) {
         segments.add(segment);
     }
     
-    // Getters
-    public String getId() { return id; }
-    public String getName() { return name; }
-    public String getType() { return type; }
-    public List<Segment> getSegments() { return new ArrayList<>(segments); }
-    public String getColor() { return color; }
+    public List<Segment> getSegments() {
+        return Collections.unmodifiableList(segments);
+    }
     
     @Override
     public boolean equals(Object o) {

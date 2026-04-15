@@ -1,10 +1,7 @@
-# Maven
+.DS_Store
 target/
-
-# Eclipse
-.settings/
-.project
-.classpath
-
-# Fichiers de données générés
-/src/data/*.csv.DS_Store
+*.class
+*.log
+venv/
+*.iml
+.idea/

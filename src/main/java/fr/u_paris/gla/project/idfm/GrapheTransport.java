@@ -2,366 +2,240 @@ package fr.u_paris.gla.project.idfm;
 
 import java.util.*;
 
-public class GrapheTransport {
-    private Map<Station, List<Segment>> adjacencyList;
-    private Map<Segment, String> segmentLines;
-
-    public GrapheTransport() {
-        this.adjacencyList = new HashMap<>();
-        this.segmentLines = new HashMap<>();
-    }
-
-    public void addStation(Station station) {
-        if (!adjacencyList.containsKey(station)) {
-            adjacencyList.put(station, new ArrayList<>());
-        }
-    }
-
-    public void addSegment(Segment segment, String lineName) {
-        // Ajouter le segment dans le sens aller
-        Station departure = segment.getDeparture();
-        Station arrival = segment.getArrival();
-        addStation(departure);
-        addStation(arrival);
-        adjacencyList.get(departure).add(segment);
-        segmentLines.put(segment, lineName);
-        
-        // Ajouter un segment dans le sens retour
-        Segment returnSegment = new Segment(arrival, departure, segment.getDuration(), segment.getDistance());
-        adjacencyList.get(arrival).add(returnSegment);
-        segmentLines.put(returnSegment, lineName);
-    }
-
-    public List<Segment> getNeighbors(Station station) {
-        return adjacencyList.getOrDefault(station, Collections.emptyList());
-    }
-
-    public List<Station> getNeighborStations(Station station) {
-        List<Station> neighbors = new ArrayList<>();
-        for (Segment segment : getNeighbors(station)) {
-            neighbors.add(segment.getArrival());
-        }
-        return neighbors;
-    }
-
-    public List<Station> getNeighborStationsOnLine(Station station, String lineName) {
-        List<Station> neighbors = new ArrayList<>();
-        for (Segment segment : getNeighbors(station)) {
-            if (lineName.equals(segmentLines.get(segment))) {
-                neighbors.add(segment.getArrival());
-            }
-        }
-        return neighbors;
-    }
-
-    public Set<String> getLinesAtStation(Station station) {
-        Set<String> lines = new HashSet<>();
-        for (Segment segment : getNeighbors(station)) {
-            lines.add(segmentLines.get(segment));
-        }
-        return lines;
-    }
-
-    public Set<Station> getAllStations() {
-        return adjacencyList.keySet();
-    }
-
+/**
+ * Extension de TransportGraph avec des fonctionnalités spécifiques à IDFM
+ */
+public class GrapheTransport extends TransportGraph {
+    
+    private Map<String, Station> stationsById = new HashMap<>();
+    
     public void loadFromCSVProvider(CSVStreamProvider provider) {
         while (provider.hasNext()) {
             String[] data = provider.next();
             
-            // Create or get stations
-            Station start = new Station(
-                data[NetworkFormat.START_INDEX],  // station id
-                data[NetworkFormat.START_INDEX],  // station name
-                parseGPSCoordinate(data[NetworkFormat.START_INDEX + 1], 0),  // latitude
-                parseGPSCoordinate(data[NetworkFormat.START_INDEX + 1], 1)   // longitude
-            );
+            // Créer les stations si elles n'existent pas
+            String startId = data[NetworkFormat.START_STOP_ID_INDEX];
+            String endId = data[NetworkFormat.END_STOP_ID_INDEX];
             
-            Station end = new Station(
-                data[NetworkFormat.STOP_INDEX],   // station id
-                data[NetworkFormat.STOP_INDEX],   // station name
-                parseGPSCoordinate(data[NetworkFormat.STOP_INDEX + 1], 0),   // latitude
-                parseGPSCoordinate(data[NetworkFormat.STOP_INDEX + 1], 1)    // longitude
-            );
+            Station start = new Station(startId, 
+                data[NetworkFormat.START_STOP_NAME_INDEX],
+                Double.parseDouble(data[NetworkFormat.START_STOP_LAT_INDEX]),
+                Double.parseDouble(data[NetworkFormat.START_STOP_LON_INDEX]));
+                
+            Station end = new Station(endId,
+                data[NetworkFormat.END_STOP_NAME_INDEX],
+                Double.parseDouble(data[NetworkFormat.END_STOP_LAT_INDEX]),
+                Double.parseDouble(data[NetworkFormat.END_STOP_LON_INDEX]));
             
-            // Create segment
+            // Ajouter le segment
             double distance = Double.parseDouble(data[NetworkFormat.DISTANCE_INDEX]);
-            int duration = parseTime(data[NetworkFormat.DURATION_INDEX]);
+            double duration = parseTime(data[NetworkFormat.DURATION_INDEX]);
+            String lineId = data[NetworkFormat.LINE_INDEX];
             
-            Segment segment = new Segment(start, end, duration, distance);
-            addSegment(segment, data[NetworkFormat.LINE_INDEX]);
+            Segment segment = new Segment(start, end, duration, distance, lineId);
+            addSegment(segment);
         }
     }
-
-    private double parseGPSCoordinate(String coords, int index) {
-        String[] parts = coords.split(",");
-        return Double.parseDouble(parts[index].trim());
+    
+    private static double parseTime(String timeStr) {
+        try {
+            String[] parts = timeStr.split(":");
+            int hours = Integer.parseInt(parts[0]);
+            int minutes = Integer.parseInt(parts[1]);
+            return hours * 60.0 + minutes;
+        } catch (Exception e) {
+            return 0.0;
+        }
     }
-
-    private int parseTime(String time) {
-        String[] parts = time.split(":");
-        return Integer.parseInt(parts[0]) * 60 + Integer.parseInt(parts[1]);
+    
+    @Override
+    public void addStation(Station station) {
+        super.addStation(station);
+        stationsById.put(station.getId(), station);
     }
-
-    public void displayGraph() {
-        for (Map.Entry<Station, List<Segment>> entry : adjacencyList.entrySet()) {
-            System.out.println("Station: " + entry.getKey().getName());
-            System.out.println("Connections:");
-            for (Segment segment : entry.getValue()) {
-                System.out.println("  -> " + segment + " (Line: " + segmentLines.get(segment) + ")");
+    
+    public Station getStation(String id) {
+        return stationsById.get(id);
+    }
+    
+    public Set<Station> getNeighborStations(Station station) {
+        Set<Station> neighbors = new HashSet<>();
+        for (Segment segment : getSegments()) {
+            if (segment.getStation1().equals(station)) {
+                neighbors.add(segment.getStation2());
+            } else if (segment.getStation2().equals(station)) {
+                neighbors.add(segment.getStation1());
             }
         }
+        return neighbors;
     }
-
-    public boolean isStationIsolated(Station station) {
-        return !adjacencyList.containsKey(station) || adjacencyList.get(station).isEmpty();
+    
+    public Set<Station> getNeighborStationsOnLine(Station station, String lineId) {
+        Set<Station> neighbors = new HashSet<>();
+        for (Segment segment : getSegments()) {
+            if (segment.getLineId().equals(lineId)) {
+                if (segment.getStation1().equals(station)) {
+                    neighbors.add(segment.getStation2());
+                } else if (segment.getStation2().equals(station)) {
+                    neighbors.add(segment.getStation1());
+                }
+            }
+        }
+        return neighbors;
     }
-
+    
+    public Set<Segment> getNeighbors(Station station) {
+        return getAdjacentSegments(station);
+    }
+    
+    public boolean isConnected() {
+        if (getStations().isEmpty()) return true;
+        
+        Set<Station> visited = new HashSet<>();
+        Queue<Station> queue = new LinkedList<>();
+        
+        Station start = getStations().iterator().next();
+        queue.add(start);
+        visited.add(start);
+        
+        while (!queue.isEmpty()) {
+            Station current = queue.poll();
+            for (Station neighbor : getNeighborStations(current)) {
+                if (!visited.contains(neighbor)) {
+                    visited.add(neighbor);
+                    queue.add(neighbor);
+                }
+            }
+        }
+        
+        return visited.size() == getStations().size();
+    }
+    
     public Set<Station> getIsolatedStations() {
-        Set<Station> isolated = new HashSet<>();
-        for (Station station : getAllStations()) {
-            if (isStationIsolated(station)) {
-                isolated.add(station);
-            }
+        Set<Station> isolated = new HashSet<>(getStations());
+        for (Segment segment : getSegments()) {
+            isolated.remove(segment.getStation1());
+            isolated.remove(segment.getStation2());
         }
         return isolated;
     }
-
-    public boolean isConnected() {
-        if (adjacencyList.isEmpty()) {
-            return true;
-        }
+    
+    public void cleanGraph() {
+        // Supprime les segments en double en gardant le plus rapide
+        Map<String, Segment> bestSegments = new HashMap<>();
         
-        Set<Station> visited = new HashSet<>();
-        Station start = adjacencyList.keySet().iterator().next();
-        dfs(start, visited);
+        System.out.println("Nombre de segments avant nettoyage : " + segments.size());
         
-        return visited.size() == adjacencyList.size();
-    }
-
-    private void dfs(Station station, Set<Station> visited) {
-        visited.add(station);
-        for (Segment segment : getNeighbors(station)) {
-            Station neighbor = segment.getArrival();
-            if (!visited.contains(neighbor)) {
-                dfs(neighbor, visited);
+        // Parcourir tous les segments et garder le plus rapide pour chaque paire de stations et ligne
+        for (Segment segment : new ArrayList<>(segments)) {
+            // Créer une clé unique pour chaque paire de stations et ligne
+            String key = makeSegmentKey(segment);
+            
+            System.out.println("Traitement segment : " + segment + " avec clé : " + key);
+            
+            Segment existing = bestSegments.get(key);
+            if (existing == null || segment.getDuration() < existing.getDuration()) {
+                System.out.println("  -> Ajout/Remplacement segment : " + segment);
+                bestSegments.put(key, segment);
+            } else {
+                System.out.println("  -> Segment ignoré car plus lent que : " + existing);
             }
         }
-    }
-
-    public List<Set<Station>> getConnectedComponents() {
-        List<Set<Station>> components = new ArrayList<>();
-        Set<Station> unvisited = new HashSet<>(getAllStations());
         
-        while (!unvisited.isEmpty()) {
-            Set<Station> component = new HashSet<>();
-            Station start = unvisited.iterator().next();
-            dfs(start, component);
-            components.add(component);
-            unvisited.removeAll(component);
+        // Vider le graphe et réajouter les meilleurs segments
+        segments.clear();
+        for (Set<Segment> adjacentSegments : adjacencyList.values()) {
+            adjacentSegments.clear();
         }
         
-        return components;
+        for (Segment segment : bestSegments.values()) {
+            Station station1 = segment.getStation1();
+            Station station2 = segment.getStation2();
+            adjacencyList.get(station1).add(segment);
+            adjacencyList.get(station2).add(segment);
+            segments.add(segment);
+        }
+        
+        System.out.println("Nombre de segments après nettoyage : " + segments.size());
     }
-
-    public boolean validateGraphStructure() {
+    
+    private String makeSegmentKey(Segment segment) {
+        String station1Id = segment.getStation1().getId();
+        String station2Id = segment.getStation2().getId();
+        // Toujours mettre l'ID le plus petit en premier pour avoir une clé cohérente
+        if (station1Id.compareTo(station2Id) <= 0) {
+            return station1Id + "-" + station2Id + "-" + segment.getLineId();
+        } else {
+            return station2Id + "-" + station1Id + "-" + segment.getLineId();
+        }
+    }
+    
+    public void displayGraphStats() {
+        System.out.println("Statistiques du graphe :");
+        System.out.println("Nombre de stations : " + getStations().size());
+        System.out.println("Nombre de segments : " + getSegments().size());
+        System.out.println("Stations isolées : " + getIsolatedStations().size());
+        System.out.println("Graphe connexe : " + isConnected());
+    }
+    
+    /**
+     * Vérifie la validité du graphe
+     */
+    public ValidationResult validate() {
         boolean isValid = true;
         StringBuilder errors = new StringBuilder();
-
-        // Vérifier les stations isolées
-        Set<Station> isolated = getIsolatedStations();
-        if (!isolated.isEmpty()) {
-            isValid = false;
-            errors.append("Stations isolées trouvées: ").append(isolated.size()).append("\n");
-            for (Station station : isolated) {
-                errors.append("  - ").append(station.getName()).append("\n");
+        
+        // Vérifier que toutes les stations ont des coordonnées valides
+        for (Station station : getStations()) {
+            if (station.getLatitude() < -90 || station.getLatitude() > 90 ||
+                station.getLongitude() < -180 || station.getLongitude() > 180) {
+                isValid = false;
+                errors.append("Coordonnées invalides pour la station: ")
+                      .append(station).append("\n");
             }
         }
-
-        // Vérifier la connexité du graphe
-        if (!isConnected()) {
-            isValid = false;
-            errors.append("Le graphe n'est pas connexe. Composantes trouvées:\n");
-            List<Set<Station>> components = getConnectedComponents();
-            for (int i = 0; i < components.size(); i++) {
-                errors.append("Composante ").append(i + 1).append(": ")
-                      .append(components.get(i).size()).append(" stations\n");
-            }
-        }
-
-        // Vérifier la cohérence des segments
-        for (Map.Entry<Station, List<Segment>> entry : adjacencyList.entrySet()) {
-            Station station = entry.getKey();
-            for (Segment segment : entry.getValue()) {
-                // Vérifier que la station de départ correspond
-                if (!station.equals(segment.getDeparture())) {
-                    isValid = false;
-                    errors.append("Incohérence de segment: station de départ incorrecte pour ")
-                          .append(segment).append("\n");
-                }
-                
-                // Vérifier que la ligne est bien définie
-                if (!segmentLines.containsKey(segment)) {
-                    isValid = false;
-                    errors.append("Segment sans ligne définie: ").append(segment).append("\n");
-                }
-            }
-        }
-
-        if (!isValid) {
-            System.err.println("Erreurs de validation du graphe:");
-            System.err.println(errors.toString());
-        }
-
-        return isValid;
+        
+        return new ValidationResult(isValid, errors.toString());
     }
-
-    public void displayGraphStats() {
-        System.out.println("Statistiques du graphe de transport:");
-        System.out.println("Nombre total de stations: " + getAllStations().size());
+    
+    /**
+     * Résultat de la validation du graphe
+     */
+    public static class ValidationResult {
+        private final boolean isValid;
+        private final String errors;
         
-        Set<String> allLines = new HashSet<>();
-        int totalSegments = 0;
-        for (Map.Entry<Station, List<Segment>> entry : adjacencyList.entrySet()) {
-            totalSegments += entry.getValue().size();
-            for (Segment segment : entry.getValue()) {
-                allLines.add(segmentLines.get(segment));
-            }
+        public ValidationResult(boolean isValid, String errors) {
+            this.isValid = isValid;
+            this.errors = errors;
         }
         
-        System.out.println("Nombre total de segments: " + totalSegments);
-        System.out.println("Nombre de lignes: " + allLines.size());
-        System.out.println("Stations isolées: " + getIsolatedStations().size());
-        System.out.println("Nombre de composantes connexes: " + getConnectedComponents().size());
+        public boolean isValid() {
+            return isValid;
+        }
+        
+        public String getErrors() {
+            return errors;
+        }
     }
-
-    public int cleanGraph() {
-        int removedCount = 0;
+    
+    @Override
+    public void addSegment(Segment segment) {
+        Station station1 = segment.getStation1();
+        Station station2 = segment.getStation2();
         
-        // Supprimer les segments en double
-        removedCount += removeDoubleSegments();
+        // Ajoute les stations si elles n'existent pas
+        addStation(station1);
+        addStation(station2);
         
-        // Supprimer les stations isolées
-        removedCount += removeIsolatedStations();
-        
-        // Évaluer la connectivité finale
-        evaluateConnectivity();
-        
-
-        
-        return removedCount;
+        // Ajoute toujours le segment, même s'il existe déjà
+        // Le nettoyage des doublons sera fait par cleanGraph()
+        adjacencyList.get(station1).add(segment);
+        adjacencyList.get(station2).add(segment);
+        segments.add(segment);
     }
-
-    private int removeDoubleSegments() {
-        int removedCount = 0;
-        Map<String, Segment> bestForwardSegments = new HashMap<>();
-        
-        // First pass: find the best forward segment for each station pair and line
-        for (Station station : adjacencyList.keySet()) {
-            for (Segment segment : new ArrayList<>(adjacencyList.get(station))) {
-                Station dest = segment.getArrival();
-                String line = segmentLines.get(segment);
-                
-                // Create a key for this station pair and line
-                String key = line + ":" + station.getId() + "-" + dest.getId();
-                
-                // Only consider forward segments from lower ID to higher ID
-                if (station.getId().compareTo(dest.getId()) < 0) {
-                    Segment existing = bestForwardSegments.get(key);
-                    if (existing == null || segment.getDuration() < existing.getDuration()) {
-                        bestForwardSegments.put(key, segment);
-                    }
-                }
-            }
-        }
-        
-        // Second pass: remove duplicates and return segments
-        for (Station station : adjacencyList.keySet()) {
-            List<Segment> segments = adjacencyList.get(station);
-            List<Segment> toRemove = new ArrayList<>();
-            
-            for (Segment segment : new ArrayList<>(segments)) {
-                Station dest = segment.getArrival();
-                String line = segmentLines.get(segment);
-                
-                // For forward segments (A->B where A.id < B.id)
-                if (station.getId().compareTo(dest.getId()) < 0) {
-                    String key = line + ":" + station.getId() + "-" + dest.getId();
-                    if (!segment.equals(bestForwardSegments.get(key))) {
-                        toRemove.add(segment);
-                        removedCount++;
-                    }
-                } else {
-                    // For return segments (B->A where B.id > A.id)
-                    // Remove all return segments except for B->C
-                    if (!line.equals("Ligne 5")) {
-                        toRemove.add(segment);
-                        removedCount++;
-                    }
-                }
-            }
-            
-            segments.removeAll(toRemove);
-            toRemove.forEach(segmentLines::remove);
-        }
-        
-        return removedCount;
-    }
-
-    private int removeIsolatedStations() {
-        Set<Station> isolated = getIsolatedStations();
-        for (Station station : isolated) {
-            adjacencyList.remove(station);
-        }
-        return isolated.size();
-    }
-
-    private void evaluateConnectivity() {
-        System.out.println("\nRapport de connectivité du graphe:");
-        
-        // Statistiques générales
-        int totalStations = getAllStations().size();
-        int totalSegments = adjacencyList.values().stream()
-            .mapToInt(List::size)
-            .sum();
-        
-        System.out.println("Nombre total de stations: " + totalStations);
-        System.out.println("Nombre total de segments: " + totalSegments);
-        
-        // Analyse des composantes connexes
-        List<Set<Station>> components = getConnectedComponents();
-        System.out.println("Nombre de composantes connexes: " + components.size());
-        
-        // Trier les composantes par taille décroissante
-        components.sort((c1, c2) -> Integer.compare(c2.size(), c1.size()));
-        
-        // Afficher les détails des composantes
-        for (int i = 0; i < components.size(); i++) {
-            Set<Station> component = components.get(i);
-            Set<String> lines = new HashSet<>();
-            
-            // Collecter toutes les lignes dans cette composante
-            for (Station station : component) {
-                for (Segment segment : getNeighbors(station)) {
-                    lines.add(segmentLines.get(segment));
-                }
-            }
-            
-            System.out.printf("Composante %d: %d stations, %d lignes%n", 
-                i + 1, component.size(), lines.size());
-            
-            // Si c'est une petite composante isolée, afficher plus de détails
-            if (component.size() < 5) {
-                System.out.println("  Stations dans cette composante:");
-                for (Station station : component) {
-                    System.out.println("    - " + station.getName());
-                }
-            }
-        }
-        
-        // Calculer et afficher la densité du graphe
-        double density = (double) totalSegments / (totalStations * (totalStations - 1));
-        System.out.printf("Densité du graphe: %.4f%n", density);
+    
+    public Set<Station> getStations() {
+        return stations;
     }
 }

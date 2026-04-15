@@ -1,9 +1,23 @@
 package fr.u_paris.gla.project.idfm;
 
+/**
+ * Constantes pour les indices des colonnes dans les fichiers CSV
+ */
 public class NetworkFormat {
-    public static final int START_INDEX = 0;      // Index de la station de départ
-    public static final int STOP_INDEX = 1;       // Index de la station d'arrivée
-    public static final int DISTANCE_INDEX = 2;   // Index de la distance
-    public static final int DURATION_INDEX = 3;   // Index de la durée
-    public static final int LINE_INDEX = 4;       // Index de la ligne
+    // Indices des colonnes pour les stations de départ
+    public static final int START_STOP_ID_INDEX = 0;
+    public static final int START_STOP_NAME_INDEX = 1;
+    public static final int START_STOP_LAT_INDEX = 2;
+    public static final int START_STOP_LON_INDEX = 3;
+    
+    // Indices des colonnes pour les stations d'arrivée
+    public static final int END_STOP_ID_INDEX = 4;
+    public static final int END_STOP_NAME_INDEX = 5;
+    public static final int END_STOP_LAT_INDEX = 6;
+    public static final int END_STOP_LON_INDEX = 7;
+    
+    // Autres indices
+    public static final int DISTANCE_INDEX = 8;
+    public static final int DURATION_INDEX = 9;
+    public static final int LINE_INDEX = 10;
 }
